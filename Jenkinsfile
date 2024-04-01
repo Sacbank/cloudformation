@@ -8,6 +8,7 @@ pipeline {
         stage('Submit Stack') {
             steps {
             sh "aws cloudformation create-stack --stack-name s3bucketcft --template-body file://s3-bucket.yml --region 'us-east-1'"
+            sh "aws cloudformation create-stack --stack-name Ec2cft --template-body file://s3-bucket.yml --region 'us-east-1'"        
               }
              }
             }
