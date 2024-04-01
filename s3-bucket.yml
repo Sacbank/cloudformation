@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: test-s3-blaze 
+      PublicAccessBlockConfiguration:
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true 
+        IgnorePublicAcls: true
+        BlockPublicAcls: true      
+      # VersioningConfiguration:
+      #   Status: Disabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: S3 Lifecyle Rule
+            Prefix: logs
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+            ExpirationInDays: 365  
+      # BucketEncryption: {
+      #     "ServerSideEncryptionConfiguration": [
+      #       {
+      #         "ServerSideEncryptionByDefault": {
+      #           "SSEAlgorithm": "AES256"
+      #         }
+      #       }
+      #     ]
+      #   }
+  MyBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref MyS3Bucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS: arn:aws:iam::211989821556:root #please changeprinciple as required this is just for testing
+          Action:
+          - s3:DeleteObject
+          - s3:DeleteObjectVersion
+          - s3:GetObject
+          - s3:GetObjectRetention
+          - s3:GetObjectVersion
+          - s3:PutObject
+          - s3:PutObjectRetention
+          - s3:RestoreObject
+          Resource: arn:aws:s3:::test-s3-blaze/*
+        - Effect: Allow
+          Principal:
+            AWS: arn:aws:iam::211989821556:root #please changeprinciple as required this is just for testing
+          Action:
+          - s3:ListBucket
+          - s3:ListBucketVersions
+          - s3:GetBucketLocation
+          - s3:GetBucketObjectLockConfiguration
+          - s3:GetBucketVersioning
+          Resource: arn:aws:s3:::test-s3-blaze
+
+          # - Effect: Allow
+          #   Principal: "*"
+          #   Action:
+          #     - 'ec2:DescribeRegions'
+          #     - 'iam:GetContextKeysForPrincipalPolicy'
+          #     - 'iam:ListAccountAliases'
+          #     - 'iam:SimulatePrincipalPolicy'
+          #     - 's3:ListAllMyBuckets'
+          #   Resource: '*'
