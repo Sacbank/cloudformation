@@ -5,16 +5,16 @@ Parameters:
   TestVpcID:
     Description: Provide VPC ID for test EC2 instances
     Type: AWS::EC2::VPC::Id
-    Default: vpc-05e9e179f190e726b
+    Default: vpc-0fb67b5aedd37a3c2
   TestSubnetID:
     Description: Provide Subnet ID to launch test EC2 instances
     Type: AWS::EC2::Subnet::Id
-    Default: subnet-0cdb843baf026b001
+    Default: subnet-094b6c39fbc3ff4b5
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the test instance
     Type: 'AWS::EC2::KeyPair::KeyName'
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-    Default: virginia
+    Default: endpoint
   TestAmiID:
     Type: String
     Description: Provide AMI ID to launch test EC2 instances
@@ -67,7 +67,7 @@ Resources:
           - Ref: "TestSecurityGroup"
         SubnetId: 
           Ref: TestSubnetID    
-        PrivateIpAddress: '192.168.0.10'
+        PrivateIpAddress: '172.31.16.10'
       DisableApiTermination: "false"
       BlockDeviceMappings:
       - DeviceName: /dev/sda1    
