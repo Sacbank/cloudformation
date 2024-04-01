@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description:  This template deploys a Linux t2.micro Instance with Security Group with open HTTP access. 
+
+Parameters:
+  TestVpcID:
+    Description: Provide VPC ID for test EC2 instances
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-05e9e179f190e726b
+  TestSubnetID:
+    Description: Provide Subnet ID to launch test EC2 instances
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0cdb843baf026b001
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the test instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+    Default: virginia
+  TestAmiID:
+    Type: String
+    Description: Provide AMI ID to launch test EC2 instances
+    Default: ami-080e1f13689e07408 
+
+Resources:  
+  TestSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: !Sub "Ubuntu2204-test-server-SG" 
+      GroupDescription: Enable HTTP from specific range
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 22
+          IpProtocol: "tcp"
+          ToPort: 22
+      Tags:
+        - Key: Name
+          Value: !Sub "Ubuntu2204-test-server-SG"
+      VpcId: !Ref TestVpcID
+#--------------------------------------------------------------------------------------------------
+# INSTANCE PROFILE
+#--------------------------------------------------------------------------------------------------
+  # InstanceProfile:
+  #   Type: AWS::IAM::InstanceProfile
+  #   Properties:
+  #     Roles: 
+  #       - Fn::ImportValue:
+  #          !Sub SSMDefaultRoleId   #The SSM Default Role template needs to export the Role Id
+
+  # InstanceProfile:
+  #   Type: AWS::IAM::InstanceProfile
+  #   Properties:
+  #     Roles: ["SSM-Role-CFT-MyS3IAMRole-fPDXPVlUuLzh"]
+
+#--------------------------------------------------------------------------------------------------
+# EC2 INSTANCE 
+#--------------------------------------------------------------------------------------------------
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: !Ref TestAmiID
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      NetworkInterfaces: 
+      - AssociatePublicIpAddress: "true" #keep true to assign public ip
+        DeviceIndex: "0"
+        GroupSet: 
+          - Ref: "TestSecurityGroup"
+        SubnetId: 
+          Ref: TestSubnetID    
+        PrivateIpAddress: '192.168.0.10'
+      DisableApiTermination: "false"
+      BlockDeviceMappings:
+      - DeviceName: /dev/sda1    
+        Ebs:
+          VolumeSize: 8
+          VolumeType: gp3
+          Iops: 3000
+          Encrypted: true
+      Tags:
+        - Key: Name
+          Value: EC2-instance-CFT
