@@ -9,7 +9,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID_1', credentialsId: 'aws-access-key-id-1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY_1']]) {
-                        sh "aws cloudformation create-stack --stack-name s3bucketcft --template-body file://s3-bucket.yml --region 'us-east-1'"
+                        sh 'export > exported_variables.txt'
                     }
                 }
             }
