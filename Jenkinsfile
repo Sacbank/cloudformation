@@ -4,8 +4,8 @@ pipeline {
     parameters {
         string(name: 'StackName', defaultValue: 'MyStack', description: 'Name of the CloudFormation stack')
         string(name: 'Region', defaultValue: 'us-east-1', description: 'AWS region to deploy the stack')
-        string(name: 'Template1', defaultValue: 's3-bucket.yml', description: 'C:\Users\sachin.bankar\OneDrive - BlazeClan Technologies Pvt. Ltd\Desktop\CFT')
-        string(name: 'Template2', defaultValue: 'EC2-ubuntu2204-instance.yml', description: 'C:\Users\sachin.bankar\OneDrive - BlazeClan Technologies Pvt. Ltd\Desktop\CFT')
+        string(name: 'Template1', defaultValue: 's3-bucket.yml', description: 'cloudformation template')
+        string(name: 'Template2', defaultValue: 'EC2-ubuntu2204-instance.yml', description: 'cloudformation template')
     }
     
     stages {
