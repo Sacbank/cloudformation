@@ -10,6 +10,15 @@ pipeline {
                 }
             }
         }
+        stage('Create EC2 Instance') {
+            steps {
+                script {
+                    withAWS(region:'us-east-1', credentials:'aws-access-key-id-4') {
+                        sh "aws cloudformation create-stack --stack-name Ec2cft --template-body file://ec2-instance.yml --region 'us-east-1'"
+                    }
+                }
+            }
+        }        
     }
     post {
         always {
