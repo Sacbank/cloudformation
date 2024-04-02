@@ -1,7 +1,7 @@
 pipeline {
     agent any
     stages {
-        stage('Create S3 Bucket') {
+        stage('Create EC2 and Network') {
             steps {
                 script {
                     withAWS(region:'us-east-1', credentials:'aws-access-key-id-1') {
@@ -11,7 +11,7 @@ pipeline {
                 }
             }
         }
-        stage('Create EC2 Instance') {
+        stage('Create s3 Bucket') {
             steps {
                 script {
                     withAWS(region:'us-east-1', credentials:'aws-access-key-id-2') {
