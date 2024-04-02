@@ -10,7 +10,7 @@ Resources:
         IgnorePublicAcls: true
         BlockPublicAcls: true      
       # VersioningConfiguration:
-      #   Status: Disabled
+      #   Status: Enabled
       LifecycleConfiguration:
         Rules:
           - Id: S3 Lifecyle Rule
@@ -40,7 +40,7 @@ Resources:
         Statement:
         - Effect: Allow
           Principal:
-            AWS: arn:aws:iam::211989821556:root #please changeprinciple as required this is just for testing
+            AWS: arn:aws:iam::945117034000:root 
           Action:
           - s3:DeleteObject
           - s3:DeleteObjectVersion
@@ -53,7 +53,7 @@ Resources:
           Resource: arn:aws:s3:::test-s3-blaze/*
         - Effect: Allow
           Principal:
-            AWS: arn:aws:iam::211989821556:root #please changeprinciple as required this is just for testing
+            AWS: arn:aws:iam::945117034000:root 
           Action:
           - s3:ListBucket
           - s3:ListBucketVersions
@@ -61,13 +61,3 @@ Resources:
           - s3:GetBucketObjectLockConfiguration
           - s3:GetBucketVersioning
           Resource: arn:aws:s3:::test-s3-blaze
-
-          # - Effect: Allow
-          #   Principal: "*"
-          #   Action:
-          #     - 'ec2:DescribeRegions'
-          #     - 'iam:GetContextKeysForPrincipalPolicy'
-          #     - 'iam:ListAccountAliases'
-          #     - 'iam:SimulatePrincipalPolicy'
-          #     - 's3:ListAllMyBuckets'
-          #   Resource: '*'
