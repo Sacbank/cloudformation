@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Pull from Git') {
             steps {
-                git 'https://github.com/Sacbank/cloudformation.git'
+                git branch: 'main', url:'https://github.com/Sacbank/cloudformation.git'
             }
         }
         stage('Update Network') {
