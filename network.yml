@@ -1,0 +1,143 @@
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "192.168.0.0/16"
+      Tags:
+        - Key: Name
+          Value: My_VPC
+
+  MyIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: IGW
+    DependsOn: MyVPC
+
+  MyIGWattach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref MyIGW
+      VpcId: !Ref MyVPC
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: "192.168.0.0/22"
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Pub-Subnet
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: "192.168.4.0/22"
+      AvailabilityZone: "us-east-1a"
+      Tags:
+        - Key: Name
+          Value: Priv-Subnet
+
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+       Domain: vpc
+
+  MyNATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt MyEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref MyVPC
+      ServiceName: !Sub "com.amazonaws.us-east-1.s3"
+      RouteTableIds:
+        - !Ref PrivateRouteTable
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: Pub-RT
+    DependsOn: MyIGWattach
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    # DependsOn: MyIGW
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref MyIGW
+
+  PublicSubnetAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: Priv-RT
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn: MyNATGateway
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref MyNATGateway
+
+  PrivateSubnetAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+#Output with Exports Value
+Outputs:
+  PublicSubnetCIDR:
+    Description: PublicSubnet CIDR in Availability Zone A
+    Value: !GetAtt PublicSubnet.CidrBlock 
+    Export:
+      Name: !Sub 'PublicSubnet-CIDR'
+  PublicSubnetID:
+    Description: PublicSubnet ID in Availability Zone A
+    Value: !Ref PublicSubnet 
+    Export:
+      Name: !Sub 'PublicSubnet-ID'
+
+  PrivateSubnetCIDR:
+    Description: PrivateSubnet CIDR in Availability Zone A
+    Value: !GetAtt PrivateSubnet.CidrBlock 
+    Export:
+      Name: !Sub 'PrivateSubnet-CIDR'
+  PrivateSubnetID:
+    Description: PrivateSubnet ID in Availability Zone A
+    Value: !Ref PrivateSubnet 
+    Export:
+      Name: !Sub 'PrivateSubnet-ID'      
+
+  VPCID:
+    Value: !Ref MyVPC
+    Description: VPC ID
+    Export:
+      Name: 'VPCID'
+
+  VPCCidrBlock:
+    Description: Export out Cidr Block
+    Value: !GetAtt MyVPC.CidrBlock
+    Export:
+      Name: VPCCidrBlock      
