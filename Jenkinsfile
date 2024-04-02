@@ -1,6 +1,11 @@
 pipeline {
     agent any
     stages {
+        stage('Pull from Git') {
+            steps {
+                git 'https://github.com/Sacbank/cloudformation.git'
+            }
+        }
         stage('Update Network') {
             steps {
                 script {
