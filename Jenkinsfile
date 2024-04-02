@@ -16,7 +16,7 @@ pipeline {
             steps {
                 script {
                     withAWS(region:'us-east-1', credentials:'aws-access-key-id-1') {
-                        sh "aws cloudformation create-stack --stack-name EC2-CFT --template-body file://ec2-instance.yml --region 'us-east-1'"
+                        sh "aws cloudformation create-stack --stack-name EC2-CFT --template-body file://ec2-instance.yml --capabilities CAPABILITY_NAMED_IAM --region 'us-east-1'"
                     }
                 }
             }
