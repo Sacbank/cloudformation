@@ -2,72 +2,92 @@ AWSTemplateFormatVersion: 2010-09-09
 Description:  This template deploys a Linux t2.micro Instance with Security Group with open HTTP access. 
 
 Parameters:
-  TestVpcID:
-    Description: Provide VPC ID for test EC2 instances
-    Type: AWS::EC2::VPC::Id
-    Default: vpc-0fb67b5aedd37a3c2
-  TestSubnetID:
-    Description: Provide Subnet ID to launch test EC2 instances
-    Type: AWS::EC2::Subnet::Id
-    Default: subnet-094b6c39fbc3ff4b5
+  # TestVpcID:
+  #   Description: Provide VPC ID for test EC2 instances
+  #   Type: AWS::EC2::VPC::Id
+  #   Default: vpc-05e9e179f190e726b
+  # TestSubnetID:
+  #   Description: Provide Subnet ID to launch test EC2 instances
+  #   Type: AWS::EC2::Subnet::Id
+  #   Default: subnet-0b2aa9104ae7871bc
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the test instance
     Type: 'AWS::EC2::KeyPair::KeyName'
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-    Default: endpoint
+    Default: virginia
   TestAmiID:
     Type: String
     Description: Provide AMI ID to launch test EC2 instances
     Default: ami-080e1f13689e07408 
 
 Resources:  
-  TestSecurityGroup:
+  PrivateSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
+    DependsOn: PublicSecurityGroup
     Properties:
-      GroupName: !Sub "Ubuntu2204-test-server-SG" 
+      GroupName: !Sub "private-server-SG" 
       GroupDescription: Enable HTTP from specific range
       SecurityGroupIngress:
-        - CidrIp: "0.0.0.0/0"
+        - SourceSecurityGroupId: !Ref PublicSecurityGroup
           FromPort: 22
           IpProtocol: "tcp"
           ToPort: 22
       Tags:
         - Key: Name
-          Value: !Sub "Ubuntu2204-test-server-SG"
-      VpcId: !Ref TestVpcID
+          Value: !Sub "private-server-SG"
+      VpcId: !ImportValue VPCID
+      
 #--------------------------------------------------------------------------------------------------
 # INSTANCE PROFILE
 #--------------------------------------------------------------------------------------------------
-  # InstanceProfile:
-  #   Type: AWS::IAM::InstanceProfile
-  #   Properties:
-  #     Roles: 
-  #       - Fn::ImportValue:
-  #          !Sub SSMDefaultRoleId   #The SSM Default Role template needs to export the Role Id
 
-  # InstanceProfile:
-  #   Type: AWS::IAM::InstanceProfile
-  #   Properties:
-  #     Roles: ["SSM-Role-CFT-MyS3IAMRole-fPDXPVlUuLzh"]
+  MyS3IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: MyS3IAMRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: CrossAccountS3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:*"
+                Resource:
+                  - "arn:aws:s3:::test-s3-blaze"
+                  - "arn:aws:s3:::test-s3-blaze/*"
+                  
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: 
+          - !Ref MyS3IAMRole
 
 #--------------------------------------------------------------------------------------------------
-# EC2 INSTANCE 
+# Private EC2 INSTANCE 
 #--------------------------------------------------------------------------------------------------
   EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      # IamInstanceProfile: !Ref InstanceProfile
+      IamInstanceProfile: !Ref InstanceProfile
       ImageId: !Ref TestAmiID
       InstanceType: t2.micro
       KeyName: !Ref KeyName
       NetworkInterfaces: 
-      - AssociatePublicIpAddress: "true" #keep true to assign public ip
+      - AssociatePublicIpAddress: "false" #keep true to assign public ip
         DeviceIndex: "0"
         GroupSet: 
-          - Ref: "TestSecurityGroup"
-        SubnetId: 
-          Ref: TestSubnetID    
-        PrivateIpAddress: '172.31.16.10'
+          - Ref: "PrivateSecurityGroup"
+        SubnetId: !ImportValue PrivateSubnet-ID  
+        PrivateIpAddress: '192.168.4.10'
       DisableApiTermination: "false"
       BlockDeviceMappings:
       - DeviceName: /dev/sda1    
@@ -78,4 +98,52 @@ Resources:
           Encrypted: true
       Tags:
         - Key: Name
-          Value: EC2-instance-CFT
+          Value: Private-EC2-instance
+
+#--------------------------------------------------------------------------------------------------
+# Public EC2 INSTANCE Security Group 
+#--------------------------------------------------------------------------------------------------
+
+  PublicSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: !Sub "public-server-SG" 
+      GroupDescription: Enable HTTP from specific range
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 22
+          IpProtocol: "tcp"
+          ToPort: 22
+      Tags:
+        - Key: Name
+          Value: !Sub "public-server-SG"
+      VpcId: !ImportValue VPCID
+
+#--------------------------------------------------------------------------------------------------
+# Public EC2 INSTANCE 
+#--------------------------------------------------------------------------------------------------
+  PublicEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: !Ref TestAmiID
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      NetworkInterfaces: 
+      - AssociatePublicIpAddress: "true" #keep true to assign public ip
+        DeviceIndex: "0"
+        GroupSet: 
+          - Ref: "PublicSecurityGroup"
+        SubnetId: !ImportValue PublicSubnet-ID  
+        PrivateIpAddress: '192.168.0.10'
+      DisableApiTermination: "false"
+      BlockDeviceMappings:
+      - DeviceName: /dev/sda1    
+        Ebs:
+          VolumeSize: 8
+          VolumeType: gp3
+          Iops: 3000
+          Encrypted: true
+      Tags:
+        - Key: Name
+          Value: Bastion-EC2-instance          
