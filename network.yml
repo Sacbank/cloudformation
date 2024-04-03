@@ -92,13 +92,13 @@ Resources:
         - Key: Name
           Value: Priv-RT
 
-  # PrivateRoute:
-  #   Type: AWS::EC2::Route
-  #   DependsOn: MyNATGateway
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTable
-  #     DestinationCidrBlock: "0.0.0.0/0"
-  #     NatGatewayId: !Ref MyNATGateway
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn: MyNATGateway
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref MyNATGateway
 
   PrivateSubnetAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
