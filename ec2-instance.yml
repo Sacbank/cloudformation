@@ -2,14 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Description:  This template deploys a Linux t2.micro Instance with Security Group with open HTTP access. 
 
 Parameters:
-  # TestVpcID:
-  #   Description: Provide VPC ID for test EC2 instances
-  #   Type: AWS::EC2::VPC::Id
-  #   Default: vpc-05e9e179f190e726b
-  # TestSubnetID:
-  #   Description: Provide Subnet ID to launch test EC2 instances
-  #   Type: AWS::EC2::Subnet::Id
-  #   Default: subnet-0b2aa9104ae7871bc
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the test instance
     Type: 'AWS::EC2::KeyPair::KeyName'
