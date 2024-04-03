@@ -9,8 +9,6 @@ Resources:
         RestrictPublicBuckets: true 
         IgnorePublicAcls: true
         BlockPublicAcls: true      
-      # VersioningConfiguration:
-      #   Status: Enabled
       LifecycleConfiguration:
         Rules:
           - Id: S3 Lifecyle Rule
@@ -22,15 +20,7 @@ Resources:
               - TransitionInDays: 90
                 StorageClass: GLACIER
             ExpirationInDays: 365  
-      # BucketEncryption: {
-      #     "ServerSideEncryptionConfiguration": [
-      #       {
-      #         "ServerSideEncryptionByDefault": {
-      #           "SSEAlgorithm": "AES256"
-      #         }
-      #       }
-      #     ]
-      #   }
+
   MyBucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
